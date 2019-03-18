@@ -1,0 +1,49 @@
+﻿@using ProductsMVC.Models
+@model IEnumerable<LogViewModel>
+
+@{
+    ViewBag.Title = "Index";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="well well-sm"><h1>Product logs</h1></div>
+<table class="table table-striped table-bordered table-hover table-responsive">
+    <caption>Detailed info</caption>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Action_desciption)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Request)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Timestamp)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.User_id)
+        </th>
+    </tr>
+    @foreach (var item in Model.ToList())
+    {
+        @*@ShowProduct(item)*@
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Action_desciption)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Request)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Timestamp)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.User_id)
+        </td>
+        <td>
+
+        </td>
+    </tr>
+    }
+
+</table>
+
