@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
@@ -17,15 +18,17 @@ namespace ProductsMVC.Controllers
     {
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
+        private ApplicationRoleManager _roleManager;
 
         public AccountController()
         {
         }
 
-        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager )
+        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager , ApplicationRoleManager roleManager)
         {
             UserManager = userManager;
             SignInManager = signInManager;
+            RoleManager = roleManager;
         }
 
         public ApplicationSignInManager SignInManager
@@ -52,6 +55,18 @@ namespace ProductsMVC.Controllers
             }
         }
 
+        public ApplicationRoleManager RoleManager
+        {
+            get
+            {
+                return _roleManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationRoleManager>();
+            }
+            private set
+            {
+                _roleManager = value;
+            }
+        }
+
         //
         // GET: /Account/Login
         [AllowAnonymous]
@@ -73,7 +88,10 @@ namespace ProductsMVC.Controllers
                 return View(model);
             }
 
-            // This doesn't count login failures towards account lockout
+            //var userManager = HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
+            //var authManager = HttpContext.GetOwinContext().Authentication;
+
+            //This doesn't count login failures towards account lockout
             // To enable password failures to trigger account lockout, change to shouldLockout: true
             var result = await SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout: false);
             switch (result)
@@ -89,7 +107,7 @@ namespace ProductsMVC.Controllers
                     ModelState.AddModelError("", "Invalid login attempt.");
                     return View(model);
             }
-        }
+    }
 
         //
         // GET: /Account/VerifyCode
@@ -139,6 +157,10 @@ namespace ProductsMVC.Controllers
         [AllowAnonymous]
         public ActionResult Register()
         {
+            List<SelectListItem> list = new List<SelectListItem>();
+            foreach (var role in RoleManager.Roles)
+                list.Add(new SelectListItem() { Value = role.Name, Text = role.Name});
+            ViewBag.Roles = list;
             return View();
         }
 
@@ -155,6 +177,7 @@ namespace ProductsMVC.Controllers
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
+                    result = await UserManager.AddToRoleAsync(user.Id, model.RoleName);
                     await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
                     
                     // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771

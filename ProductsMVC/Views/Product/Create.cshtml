@@ -7,7 +7,7 @@
 <div class="well well-sm"><h1>Add Product</h1></div>
 @using (Html.BeginForm(null, null, FormMethod.Post, new { name = "createForm", id = "createForm" }))
 {
-    @* @Html.AntiForgeryToken() *@
+    @Html.AntiForgeryToken() 
 
     <div class="form-horizontal">
         <hr id="openingLine" />

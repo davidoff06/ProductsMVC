@@ -24,6 +24,7 @@ namespace ProductsMVC.Controllers
 
 
         // GET: Product
+        [Authorize(Roles = "Admin")]
         public ActionResult Index()
         {
             var logs = _repo.GetAll();

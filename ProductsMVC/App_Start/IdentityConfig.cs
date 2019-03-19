@@ -10,6 +10,8 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.Cookies;
+using Owin;
 using ProductsMVC.Models;
 
 namespace ProductsMVC
@@ -104,6 +106,37 @@ namespace ProductsMVC
         public static ApplicationSignInManager Create(IdentityFactoryOptions<ApplicationSignInManager> options, IOwinContext context)
         {
             return new ApplicationSignInManager(context.GetUserManager<ApplicationUserManager>(), context.Authentication);
+        }
+    }
+
+    public class ApplicationRoleManager : RoleManager<ApplicationRole>
+    {
+        public ApplicationRoleManager(IRoleStore<ApplicationRole, string> roleStore) : base(roleStore) { }
+
+        public static ApplicationRoleManager Create(IdentityFactoryOptions<ApplicationRoleManager> options, IOwinContext context)
+        {
+            var applicationRoleManager = new ApplicationRoleManager(new RoleStore<ApplicationRole>(context.Get<ApplicationDbContext>()));
+            return applicationRoleManager;
+        }
+    }
+
+    public class IdentityConfig
+    {
+        public void Configuration(IAppBuilder app)
+        {
+            app.CreatePerOwinContext(() => new ApplicationDbContext());
+            app.CreatePerOwinContext<ApplicationUserManager>(ApplicationUserManager.Create);
+            app.CreatePerOwinContext<ApplicationSignInManager>(ApplicationSignInManager.Create);
+            app.CreatePerOwinContext<ApplicationRoleManager>(ApplicationRoleManager.Create);
+            //app.CreatePerOwinContext<RoleManager<ApplicationRole>>((options, context) =>
+            //    new RoleManager<ApplicationRole>(
+            //        new RoleStore<ApplicationRole>(context.Get<ApplicationDbContext>())));
+
+            app.UseCookieAuthentication(new CookieAuthenticationOptions
+            {
+                AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
+                LoginPath = new PathString("/Home/Login"),
+            });
         }
     }
 }

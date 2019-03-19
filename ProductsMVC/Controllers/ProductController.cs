@@ -16,7 +16,8 @@ namespace ProductsMVC.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly ProductRepo _repo = new ProductRepo();
+        private readonly ProductRepo _productRepo = new ProductRepo();
+        private readonly LogRepo _logRepo = new LogRepo();
 
         private IMapper iMapper = new MapperConfiguration(
             cfg => 
@@ -30,7 +31,7 @@ namespace ProductsMVC.Controllers
         // GET: Product
         public ActionResult Index()
         {
-            var products = _repo.GetAll();
+            var products = _productRepo.GetAll();
             return View(iMapper.Map<List<Product>, List<ProductViewModel>>(products));
         }
 
@@ -41,7 +42,7 @@ namespace ProductsMVC.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var product = _repo.GetOne(id);
+            var product = _productRepo.GetOne(id);
 
             if (product == null)
             {
@@ -57,7 +58,7 @@ namespace ProductsMVC.Controllers
         }
 
         // POST: Product/Create
-        //[ValidateAntiForgeryToken] //TODO : add validation
+        [ValidateAntiForgeryToken]
         [HttpPost]
         public ActionResult Create([Bind(Include = "Name,Price,Description")] ProductViewModel product)
         {
@@ -68,8 +69,7 @@ namespace ProductsMVC.Controllers
             }
             try
             {
-                product.Id = 100;
-                _repo.Add(iMapper.Map<ProductViewModel, Product>(product));
+                _productRepo.Add(iMapper.Map<ProductViewModel, Product>(product));
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -86,7 +86,7 @@ namespace ProductsMVC.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var product = _repo.GetOne(id);
+            var product = _productRepo.GetOne(id);
             if (product == null)
             {
                 return HttpNotFound();
@@ -96,13 +96,13 @@ namespace ProductsMVC.Controllers
 
         // POST: Product/Edit/5
         [HttpPost]
-        //[ValidateAntiForgeryToken] //TODO : add validation
+        [ValidateAntiForgeryToken] 
         public ActionResult Edit([Bind(Include = "Id, Name, Price, Description")] ProductViewModel product)
         {
             if (!ModelState.IsValid) { return View(product); }
             try
             {
-                var el = _repo.Save(iMapper.Map<ProductViewModel, Product>(product));
+                var el = _productRepo.Save(iMapper.Map<ProductViewModel, Product>(product));
                 return RedirectToAction("Index");
             }
             catch (DbUpdateConcurrencyException)
@@ -117,13 +117,14 @@ namespace ProductsMVC.Controllers
         }
 
         // GET: Product/Delete/5
+        [Authorize(Roles = "Admin")]
         public ActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var product = _repo.GetOne(id);
+            var product = _productRepo.GetOne(id);
             if (product == null)
             {
                 return HttpNotFound();
@@ -134,12 +135,12 @@ namespace ProductsMVC.Controllers
         // POST: Product/Delete/5
         // No longer need the [ActionName("Delete")] attribute
         [HttpPost]
-        //[ValidateAntiForgeryToken] //TODO
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(ProductViewModel product)
         {
             try
             {
-                _repo.Delete(iMapper.Map<ProductViewModel, Product>(product));
+                _productRepo.Delete(iMapper.Map<ProductViewModel, Product>(product));
                 return RedirectToAction("Index");
             }
             catch (DbUpdateConcurrencyException)
@@ -157,7 +158,7 @@ namespace ProductsMVC.Controllers
         {
             if (disposing)
             {
-                _repo.Dispose(); 
+                _productRepo.Dispose(); 
 
             }
             base.Dispose(disposing);

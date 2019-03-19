@@ -22,5 +22,7 @@ namespace ProductDAL
     
         public virtual DbSet<Product> Product { get; set; }
         public virtual DbSet<Log> Log { get; set; }
+
+        //public System.Data.Entity.DbSet<ProductsMVC.Models.RoleViewModel> RoleViewModels { get; set; }
     }
 }

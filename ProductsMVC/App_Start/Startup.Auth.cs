@@ -5,8 +5,10 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.Google;
 using Owin;
+using ProductsMVC;
 using ProductsMVC.Models;
 
+[assembly: OwinStartup(typeof(Startup), "Configuration")]
 namespace ProductsMVC
 {
     public partial class Startup
