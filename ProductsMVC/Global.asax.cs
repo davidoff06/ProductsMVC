@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 using AutoMapper;
+using ProductDAL.Models;
 
 namespace ProductsMVC
 {
@@ -18,8 +19,14 @@ namespace ProductsMVC
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
-            //var config = new MapperConfiguration(cfg => { cfg.CreateMap<ProductDAL.Models.Product, ProductViewModel>(); });
-            //IMapper iMapper = config.CreateMapper();
+            Mapper.Initialize(cfg =>
+            {
+                cfg.CreateMap<Product, ProductViewModel>();
+                cfg.CreateMap<ProductViewModel, Product>();
+                cfg.CreateMap<Log, LogViewModel>();
+                cfg.CreateMap<LogViewModel, Log>();
+
+            });
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using ProductDAL.Models;
 using System;
 using System.Data.Entity;
+using System.Data.Entity.Core.Metadata.Edm;
 using System.Data.Entity.Infrastructure;
 
 namespace ProductDAL
@@ -16,6 +17,7 @@ namespace ProductDAL
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Product>().ToTable("Product");
+            //modelBuilder.Entity<Log>().HasKey(b => b.Id);
             modelBuilder.Entity<Log>().ToTable("Log");
             base.OnModelCreating(modelBuilder);
         }
@@ -23,6 +25,5 @@ namespace ProductDAL
         public virtual DbSet<Product> Product { get; set; }
         public virtual DbSet<Log> Log { get; set; }
 
-        //public System.Data.Entity.DbSet<ProductsMVC.Models.RoleViewModel> RoleViewModels { get; set; }
     }
 }

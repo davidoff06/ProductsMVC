@@ -128,14 +128,11 @@ namespace ProductsMVC
             app.CreatePerOwinContext<ApplicationUserManager>(ApplicationUserManager.Create);
             app.CreatePerOwinContext<ApplicationSignInManager>(ApplicationSignInManager.Create);
             app.CreatePerOwinContext<ApplicationRoleManager>(ApplicationRoleManager.Create);
-            //app.CreatePerOwinContext<RoleManager<ApplicationRole>>((options, context) =>
-            //    new RoleManager<ApplicationRole>(
-            //        new RoleStore<ApplicationRole>(context.Get<ApplicationDbContext>())));
 
             app.UseCookieAuthentication(new CookieAuthenticationOptions
             {
                 AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
-                LoginPath = new PathString("/Home/Login"),
+                LoginPath = new PathString("/Account/Login"),
             });
         }
     }

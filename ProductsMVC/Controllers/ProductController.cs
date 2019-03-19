@@ -10,7 +10,9 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-
+using Microsoft.AspNet.Identity.Owin;
+using ProductsMVC.Common.Enum;
+using Microsoft.AspNet.Identity;
 
 namespace ProductsMVC.Controllers
 {
@@ -18,21 +20,12 @@ namespace ProductsMVC.Controllers
     {
         private readonly ProductRepo _productRepo = new ProductRepo();
         private readonly LogRepo _logRepo = new LogRepo();
-
-        private IMapper iMapper = new MapperConfiguration(
-            cfg => 
-            {
-                cfg.CreateMap<Product, ProductViewModel>();
-                cfg.CreateMap<ProductViewModel, Product>();
-            }
-            ).CreateMapper();
-
        
         // GET: Product
         public ActionResult Index()
         {
             var products = _productRepo.GetAll();
-            return View(iMapper.Map<List<Product>, List<ProductViewModel>>(products));
+            return View(Mapper.Map<List<Product>, List<ProductViewModel>>(products));
         }
 
         // GET: Product/Details/5
@@ -48,7 +41,7 @@ namespace ProductsMVC.Controllers
             {
                 return HttpNotFound();
             }
-            return View(iMapper.Map<Product, ProductViewModel>(product));
+            return View(Mapper.Map<Product, ProductViewModel>(product));
         }
 
         // GET: Product/Create
@@ -58,7 +51,7 @@ namespace ProductsMVC.Controllers
         }
 
         // POST: Product/Create
-        [ValidateAntiForgeryToken]
+        //[ValidateAntiForgeryToken] 
         [HttpPost]
         public ActionResult Create([Bind(Include = "Name,Price,Description")] ProductViewModel product)
         {
@@ -69,7 +62,19 @@ namespace ProductsMVC.Controllers
             }
             try
             {
-                _productRepo.Add(iMapper.Map<ProductViewModel, Product>(product));
+                var userId = System.Web.HttpContext.Current.User.Identity.GetUserId();
+                var user = User.Identity.Name;
+                var logId = new Random().Next(Int32.MinValue, Int32.MaxValue);// FIXME: Id generagion should be handled by EF instead
+                LogViewModel logVM = new LogViewModel()
+                {
+                    ActionDescription = $"User:{user} ; Action: {Actions.Create}; Product name: {product.Name}; Product id: {product.Id}",
+                    Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
+                    UserId = userId,
+                    Id = logId
+                };
+
+                _logRepo.Add(Mapper.Map<LogViewModel, Log>(logVM));
+                _productRepo.Add(Mapper.Map<ProductViewModel, Product>(product));
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -91,18 +96,18 @@ namespace ProductsMVC.Controllers
             {
                 return HttpNotFound();
             }
-            return View(iMapper.Map<Product, ProductViewModel>(product));
+            return View(Mapper.Map<Product, ProductViewModel>(product));
         }
 
         // POST: Product/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken] 
+        //[ValidateAntiForgeryToken]  
         public ActionResult Edit([Bind(Include = "Id, Name, Price, Description")] ProductViewModel product)
         {
             if (!ModelState.IsValid) { return View(product); }
             try
             {
-                var el = _productRepo.Save(iMapper.Map<ProductViewModel, Product>(product));
+                var el = _productRepo.Save(Mapper.Map<ProductViewModel, Product>(product));
                 return RedirectToAction("Index");
             }
             catch (DbUpdateConcurrencyException)
@@ -129,18 +134,18 @@ namespace ProductsMVC.Controllers
             {
                 return HttpNotFound();
             }
-            return View(iMapper.Map<Product,ProductViewModel>(product));
+            return View(Mapper.Map<Product,ProductViewModel>(product));
         }
 
         // POST: Product/Delete/5
         // No longer need the [ActionName("Delete")] attribute
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        //[ValidateAntiForgeryToken] 
         public async Task<ActionResult> Delete(ProductViewModel product)
         {
             try
             {
-                _productRepo.Delete(iMapper.Map<ProductViewModel, Product>(product));
+                _productRepo.Delete(Mapper.Map<ProductViewModel, Product>(product));
                 return RedirectToAction("Index");
             }
             catch (DbUpdateConcurrencyException)
