@@ -36,6 +36,7 @@ namespace ProductsMVC.Controllers
 
 
         // GET: Role
+        [Authorize(Roles = "Admin")]
         public ActionResult Index()
         {
             List<RoleViewModel> list = new List<RoleViewModel>();

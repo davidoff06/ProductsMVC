@@ -20,7 +20,7 @@ namespace ProductsMVC.Controllers
     {
         private readonly ProductRepo _productRepo = new ProductRepo();
         private readonly LogRepo _logRepo = new LogRepo();
-       
+
         // GET: Product
         public ActionResult Index()
         {
@@ -62,19 +62,8 @@ namespace ProductsMVC.Controllers
             }
             try
             {
-                var userId = System.Web.HttpContext.Current.User.Identity.GetUserId();
-                var user = User.Identity.Name;
-                var logId = new Random().Next(Int32.MinValue, Int32.MaxValue);// FIXME: Id generagion should be handled by EF instead
-                LogViewModel logVM = new LogViewModel()
-                {
-                    ActionDescription = $"User:{user} ; Action: {Actions.Create}; Product name: {product.Name}; Product id: {product.Id}",
-                    Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
-                    UserId = userId,
-                    Id = logId
-                };
-
-                _logRepo.Add(Mapper.Map<LogViewModel, Log>(logVM));
                 _productRepo.Add(Mapper.Map<ProductViewModel, Product>(product));
+                LogProductCRUD(product, Actions.Create);
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
@@ -108,6 +97,7 @@ namespace ProductsMVC.Controllers
             try
             {
                 var el = _productRepo.Save(Mapper.Map<ProductViewModel, Product>(product));
+                LogProductCRUD(product, Actions.Edit);
                 return RedirectToAction("Index");
             }
             catch (DbUpdateConcurrencyException)
@@ -146,6 +136,7 @@ namespace ProductsMVC.Controllers
             try
             {
                 _productRepo.Delete(Mapper.Map<ProductViewModel, Product>(product));
+                LogProductCRUD(product, Actions.Delete);
                 return RedirectToAction("Index");
             }
             catch (DbUpdateConcurrencyException)
@@ -157,6 +148,23 @@ namespace ProductsMVC.Controllers
                 ModelState.AddModelError(string.Empty, $"Unable to create record: {ex.Message}");
             }
             return View(product);
+        }
+
+        private void LogProductCRUD(ProductViewModel product, Actions action)
+        {
+            var userId = System.Web.HttpContext.Current.User.Identity.GetUserId();
+            var user = User.Identity.Name;
+            user = string.IsNullOrWhiteSpace(user) ? "Anonymous" : user;
+            var logId = new Random().Next(Int32.MinValue, Int32.MaxValue);// FIXME: Id generagion should be handled by EF instead
+            LogViewModel logVM = new LogViewModel()
+            {
+                ActionDescription = $"User:{user ?? "Anonymous"} ; Action: {action}; Product name: {product.Name}; Product id: {product.Id}",
+                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
+                UserId = userId,
+                Id = logId
+            };
+
+            _logRepo.Add(Mapper.Map<LogViewModel, Log>(logVM));
         }
 
         protected override void Dispose(bool disposing)
